@@ -20,15 +20,28 @@ def _text(item, tag):
     return el.text.strip() if el is not None and el.text else ""
 
 
+def _get(params, tries=4):
+    """공공데이터 API가 가끔 느리거나 5xx를 주므로 간격을 늘려가며 재시도."""
+    for i in range(tries):
+        try:
+            r = requests.get(ENDPOINT, params=params, timeout=60)
+            if r.status_code < 500:
+                r.raise_for_status()
+                return r
+        except (requests.ConnectionError, requests.Timeout):
+            if i == tries - 1:
+                raise
+        time.sleep(5 * (i + 1))
+    r.raise_for_status()
+    return r
+
+
 def fetch_month(api_key, lawd_cd, yyyymm, rows=1000):
     """한 구, 한 달치 전월세 거래를 모두 가져온다."""
     out, page = [], 1
     while True:
-        r = requests.get(ENDPOINT, params={
-            "serviceKey": api_key, "LAWD_CD": lawd_cd, "DEAL_YMD": yyyymm,
-            "pageNo": page, "numOfRows": rows,
-        }, timeout=30)
-        r.raise_for_status()
+        r = _get({"serviceKey": api_key, "LAWD_CD": lawd_cd, "DEAL_YMD": yyyymm,
+                  "pageNo": page, "numOfRows": rows})
         root = ET.fromstring(r.content)
         code = root.findtext(".//resultCode") or ""
         if code not in ("00", "000"):
