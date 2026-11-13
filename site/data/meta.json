@@ -1,0 +1,136 @@
+{
+ "updated_at": "2026-11-13T21:26+09:00",
+ "months": [
+  "202611",
+  "202610",
+  "202609"
+ ],
+ "gu": {
+  "11110": {
+   "name": "종로구",
+   "count": 300,
+   "new_today": 0
+  },
+  "11140": {
+   "name": "중구",
+   "count": 504,
+   "new_today": 0
+  },
+  "11170": {
+   "name": "용산구",
+   "count": 877,
+   "new_today": 0
+  },
+  "11200": {
+   "name": "성동구",
+   "count": 1230,
+   "new_today": 0
+  },
+  "11215": {
+   "name": "광진구",
+   "count": 687,
+   "new_today": 0
+  },
+  "11230": {
+   "name": "동대문구",
+   "count": 1129,
+   "new_today": 0
+  },
+  "11260": {
+   "name": "중랑구",
+   "count": 1543,
+   "new_today": 0
+  },
+  "11290": {
+   "name": "성북구",
+   "count": 1075,
+   "new_today": 0
+  },
+  "11305": {
+   "name": "강북구",
+   "count": 434,
+   "new_today": 0
+  },
+  "11320": {
+   "name": "도봉구",
+   "count": 841,
+   "new_today": 0
+  },
+  "11350": {
+   "name": "노원구",
+   "count": 2573,
+   "new_today": 0
+  },
+  "11380": {
+   "name": "은평구",
+   "count": 1444,
+   "new_today": 0
+  },
+  "11410": {
+   "name": "서대문구",
+   "count": 983,
+   "new_today": 0
+  },
+  "11440": {
+   "name": "마포구",
+   "count": 1990,
+   "new_today": 0
+  },
+  "11470": {
+   "name": "양천구",
+   "count": 1678,
+   "new_today": 0
+  },
+  "11500": {
+   "name": "강서구",
+   "count": 2341,
+   "new_today": 0
+  },
+  "11530": {
+   "name": "구로구",
+   "count": 1719,
+   "new_today": 0
+  },
+  "11545": {
+   "name": "금천구",
+   "count": 527,
+   "new_today": 0
+  },
+  "11560": {
+   "name": "영등포구",
+   "count": 1871,
+   "new_today": 0
+  },
+  "11590": {
+   "name": "동작구",
+   "count": 1353,
+   "new_today": 0
+  },
+  "11620": {
+   "name": "관악구",
+   "count": 814,
+   "new_today": 0
+  },
+  "11650": {
+   "name": "서초구",
+   "count": 2118,
+   "new_today": 0
+  },
+  "11680": {
+   "name": "강남구",
+   "count": 2907,
+   "new_today": 0
+  },
+  "11710": {
+   "name": "송파구",
+   "count": 2763,
+   "new_today": 0
+  },
+  "11740": {
+   "name": "강동구",
+   "count": 2207,
+   "new_today": 0
+  }
+ },
+ "failed": []
+}

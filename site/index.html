@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>서울 전월세 워치</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M4 15 16 5l12 10v13H4z' fill='%23256a4a'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f6f6f3;--card:#ffffff;--fg:#1c1c1a;--mute:#6d6d67;--line:#e3e3dd;
+  --acc:#256a4a;--acc-bg:#e6f2ec;--new:#c2410c;--new-bg:#fff2e8;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#141413;--card:#1e1e1c;--fg:#ececea;--mute:#9b9b95;--line:#32322e;
+  --acc:#7cc6a0;--acc-bg:#1c3328;--new:#fb923c;--new-bg:#3a2415;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+.wrap{max-width:1200px;margin:0 auto;padding:20px 16px 80px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin-bottom:16px}
+h1{font-size:21px;margin:0}
+.sub{color:var(--mute);font-size:13px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.lbl{font-size:12px;color:var(--mute);margin:0 0 6px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:999px;padding:4px 11px;font:inherit;font-size:13px;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--acc-bg);border-color:var(--acc);color:var(--acc);font-weight:600}
+.chip.sm{font-size:12px;padding:2px 9px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:14px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field span{font-size:12px;color:var(--mute)}
+input,select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--fg);width:100%;min-width:0}
+.row2{display:flex;gap:6px;align-items:center}
+.check{display:flex;gap:6px;align-items:center;font-size:13px;margin-top:20px}
+.check input{width:auto}
+.actions{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px;flex-wrap:wrap}
+.link{background:none;border:none;color:var(--acc);font:inherit;font-size:13px;cursor:pointer;padding:0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.card b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.card span{color:var(--mute);font-size:12px}
+.card.hl b{color:var(--new)}
+h2{font-size:15px;margin:22px 0 8px;display:flex;gap:8px;align-items:baseline}
+h2 small{color:var(--mute);font-weight:400;font-size:12px}
+.tw{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;white-space:nowrap}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}
+tr:last-child td{border-bottom:none}
+th{background:var(--card);color:var(--mute);font-weight:600;font-size:12px;cursor:pointer;user-select:none}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.new td{background:var(--new-bg)}
+.badge{color:var(--new);font-weight:700;font-size:11px}
+.mute{color:var(--mute)}
+.more{display:block;margin:12px auto 0;padding:8px 18px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;cursor:pointer}
+.empty{padding:28px;text-align:center;color:var(--mute)}
+.warn{color:var(--new);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>서울 아파트 전월세 워치</h1>
+    <span class="sub" id="updated">불러오는 중…</span>
+  </header>
+
+  <section class="panel">
+    <p class="lbl">관심 구 <button class="link" id="allGu" style="margin-left:8px">전체 선택</button> · <button class="link" id="noGu">해제</button></p>
+    <div class="chips" id="guChips"></div>
+    <div id="dongWrap" style="margin-top:12px" hidden>
+      <p class="lbl">동 (선택 안 하면 전체)</p>
+      <div class="chips" id="dongChips"></div>
+    </div>
+    <div class="grid">
+      <label class="field"><span>구분</span>
+        <select id="trade"><option value="">전세 + 월세</option><option>전세</option><option>월세</option></select></label>
+      <label class="field"><span>보증금 상한 (만원)</span><input id="depMax" type="number" inputmode="numeric" placeholder="예: 60000"></label>
+      <label class="field"><span>월세 상한 (만원)</span><input id="rentMax" type="number" inputmode="numeric" placeholder="예: 150"></label>
+      <div class="field"><span>전용면적 ㎡ (59≈25평, 84≈33평)</span>
+        <div class="row2"><input id="areaMin" type="number" placeholder="최소"><span class="mute">~</span><input id="areaMax" type="number" placeholder="최대"></div></div>
+      <label class="field"><span>준공 연도 이후</span><input id="yearMin" type="number" placeholder="예: 2010"></label>
+      <label class="field"><span>단지명 검색</span><input id="q" placeholder="예: 래미안"></label>
+      <label class="field"><span>새로 등록된 거래</span>
+        <select id="newIn"><option value="">전체 보기</option><option value="1">오늘 등록</option><option value="3">최근 3일</option><option value="7">최근 7일</option><option value="30">최근 30일</option></select></label>
+      <label class="check"><input type="checkbox" id="newOnly"> 갱신 제외 (신규 계약만)</label>
+    </div>
+    <div class="actions">
+      <span class="sub">조건은 이 기기에 저장되고, 주소(URL)에도 담겨서 북마크하면 다른 기기에서도 그대로 열려요.</span>
+      <button class="link" id="reset">조건 초기화</button>
+    </div>
+  </section>
+
+  <div class="cards" id="cards"></div>
+
+  <h2>동별 전세 시세 <small>전용면적 구간별 보증금 중앙값 (만원) · 괄호는 건수</small></h2>
+  <div class="tw"><table id="sum"></table></div>
+
+  <h2>거래 목록 <small id="cnt"></small></h2>
+  <div class="tw"><table id="list"></table></div>
+  <button class="more" id="more" hidden>더 보기</button>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = n => n == null || n === '' ? '' : Number(n).toLocaleString('ko-KR');
+const BANDS = [['~40㎡',0,40],['40~60㎡',40,60],['60~85㎡',60,85],['85~102㎡',85,102],['102㎡~',102,1e9]];
+const bandOf = a => BANDS.find(b => a >= b[1] && a < b[2])[0];
+const median = xs => { if (!xs.length) return null; const s = [...xs].sort((a,b)=>a-b), m = s.length>>1; return s.length%2 ? s[m] : Math.round((s[m-1]+s[m])/2); };
+const FIELDS = ['trade','depMax','rentMax','areaMin','areaMax','yearMin','q','newIn'];
+
+let META = null, cache = {}, state = defaults(), sortKey = 'date', sortDir = -1, shown = 300;
+
+function defaults(){ return {gu:['11440'], dong:[], trade:'', depMax:'', rentMax:'', areaMin:'', areaMax:'', yearMin:'', q:'', newIn:'', newOnly:false}; }
+
+function loadState(){
+  let s = null;
+  if (location.hash.length > 1) { try { s = JSON.parse(decodeURIComponent(location.hash.slice(1))); } catch {} }
+  if (!s) { try { s = JSON.parse(localStorage.getItem('rentwatch') || 'null'); } catch {} }
+  return {...defaults(), ...(s || {})};
+}
+function saveState(){
+  const j = JSON.stringify(state);
+  history.replaceState(null, '', '#' + encodeURIComponent(j));
+  try { localStorage.setItem('rentwatch', j); } catch {}
+}
+
+async function getGu(code){
+  if (!cache[code]) {
+    const r = await fetch(`data/${code}.json`, {cache:'no-cache'});
+    if (!r.ok) { cache[code] = []; return []; }
+    const o = await r.json(), gu = META.gu[code].name;
+    cache[code] = o.rows.map(row => { const d = Object.fromEntries(o.cols.map((c,i)=>[c,row[i]])); d.gu = gu; d.trade = d.monthly_rent ? '월세' : '전세'; d.py = d.area ? Math.round(d.area/3.3058) : ''; return d; });
+  }
+  return cache[code];
+}
+
+// META.updated_at은 한국시간 기준 날짜 → 시간대 영향 없이 날짜만 계산
+function daysAgo(n){ const d = new Date(META.updated_at.slice(0,10) + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - (n-1)); return d.toISOString().slice(0,10); }
+
+function drawGuChips(){
+  const codes = Object.keys(META.gu).sort((a,b)=>META.gu[a].name.localeCompare(META.gu[b].name,'ko'));
+  $('guChips').innerHTML = codes.map(c => `<button class="chip" data-c="${c}" aria-pressed="${state.gu.includes(c)}">${META.gu[c].name}${META.gu[c].new_today ? ` <span class="badge">+${META.gu[c].new_today}</span>` : ''}</button>`).join('');
+  $('guChips').querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    const c = b.dataset.c; state.gu = state.gu.includes(c) ? state.gu.filter(x=>x!==c) : [...state.gu, c]; update(true);
+  });
+}
+
+function drawDongChips(all){
+  const dongs = [...new Set(all.map(d=>d.dong))].sort((a,b)=>a.localeCompare(b,'ko'));
+  state.dong = state.dong.filter(d => dongs.includes(d));
+  $('dongWrap').hidden = !dongs.length;
+  $('dongChips').innerHTML = dongs.map(d => `<button class="chip sm" aria-pressed="${state.dong.includes(d)}">${d}</button>`).join('');
+  $('dongChips').querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    const d = b.textContent; state.dong = state.dong.includes(d) ? state.dong.filter(x=>x!==d) : [...state.dong, d]; update();
+  });
+}
+
+function filter(all){
+  const s = state, num = v => v === '' || v == null ? null : Number(v);
+  const dep = num(s.depMax), rent = num(s.rentMax), aMin = num(s.areaMin), aMax = num(s.areaMax), yMin = num(s.yearMin);
+  const since = s.newIn ? daysAgo(Number(s.newIn)) : null;
+  return all.filter(d =>
+    (!s.dong.length || s.dong.includes(d.dong)) &&
+    (!s.trade || d.trade === s.trade) &&
+    (dep == null || d.deposit <= dep) &&
+    (rent == null || d.monthly_rent <= rent) &&
+    (aMin == null || d.area >= aMin) && (aMax == null || d.area <= aMax) &&
+    (yMin == null || d.build_year >= yMin) &&
+    (!s.q || d.apt.includes(s.q.trim())) &&
+    (!s.newOnly || d.contract_type !== '갱신') &&
+    (!since || (d.first_seen && d.first_seen >= since)));
+}
+
+const COLS = [['','new'],['계약일','date'],['구','gu'],['동','dong'],['단지','apt'],['전용㎡','area',1],['평','py',1],['층','floor',1],['구분','trade'],['보증금','deposit',1],['월세','monthly_rent',1],['신규/갱신','contract_type'],['종전 보증금','pre_deposit',1],['종전 월세','pre_monthly_rent',1],['준공','build_year',1],['등록일','first_seen']];
+
+function render(rows){
+  const recent = META ? daysAgo(1) : '';
+  const isNew = d => d.first_seen && d.first_seen >= recent;
+  const jeonse = rows.filter(d=>d.trade==='전세').map(d=>d.deposit);
+  const wolse = rows.filter(d=>d.trade==='월세');
+  $('cards').innerHTML = [
+    [fmt(rows.length),'거래 건수'], [fmt(rows.filter(isNew).length),'오늘 새로 등록', 'hl'],
+    [fmt(median(jeonse)) || '-','전세 보증금 중앙값'], [fmt(median(wolse.map(d=>d.monthly_rent))) || '-','월세 중앙값'],
+  ].map(([v,l,c]) => `<div class="card ${c||''}"><b>${v}</b><span>${l}</span></div>`).join('');
+
+  const S = {};
+  rows.filter(d=>d.trade==='전세' && d.area).forEach(d => { const k = d.gu+' '+d.dong; ((S[k] ??= {})[bandOf(d.area)] ??= []).push(d.deposit); });
+  const keys = Object.keys(S).sort((a,b)=>a.localeCompare(b,'ko'));
+  $('sum').innerHTML = keys.length
+    ? '<tr><th>지역</th>' + BANDS.map(b=>`<th>${b[0]}</th>`).join('') + '</tr>' + keys.map(k => '<tr><td>'+k+'</td>' + BANDS.map(([b]) => { const v = S[k][b] || []; return `<td class="n">${v.length ? fmt(median(v)) + ` <span class="mute">(${v.length})</span>` : ''}</td>`; }).join('') + '</tr>').join('')
+    : '<tr><td class="empty">전세 거래가 없어요</td></tr>';
+
+  rows.sort((a,b) => { const x = a[sortKey] ?? '', y = b[sortKey] ?? ''; return (x>y?1:x<y?-1:0) * sortDir; });
+  $('cnt').textContent = `${fmt(rows.length)}건`;
+  if (!rows.length) { $('list').innerHTML = `<tr><td class="empty">${state.gu.length ? '조건에 맞는 거래가 없어요' : '위에서 관심 구를 골라주세요'}</td></tr>`; $('more').hidden = true; return; }
+  $('list').innerHTML = '<tr>' + COLS.map(([h,k]) => `<th data-k="${k}">${h}${sortKey===k ? (sortDir>0?' ▲':' ▼') : ''}</th>`).join('') + '</tr>' +
+    rows.slice(0, shown).map(d => `<tr class="${isNew(d)?'new':''}">` + COLS.map(([h,k,n]) =>
+      k === 'new' ? `<td>${isNew(d) ? '<span class="badge">NEW</span>' : ''}</td>` :
+      `<td class="${n?'n':''}">${n ? fmt(d[k]) : (d[k] ?? '')}</td>`).join('') + '</tr>').join('');
+  $('list').querySelectorAll('th').forEach(th => th.onclick = () => { const k = th.dataset.k; if (k==='new') return; sortDir = sortKey===k ? -sortDir : -1; sortKey = k; update(); });
+  $('more').hidden = rows.length <= shown;
+}
+
+let token = 0;
+async function update(guChanged){
+  const my = ++token;
+  saveState(); shown = guChanged ? 300 : shown;
+  if (guChanged) drawGuChips();
+  const all = (await Promise.all(state.gu.map(getGu))).flat();
+  if (my !== token) return;
+  drawDongChips(all);
+  render(filter(all));
+}
+
+function bindInputs(){
+  FIELDS.forEach(f => { $(f).value = state[f] ?? ''; $(f).oninput = $(f).onchange = () => { state[f] = $(f).value; shown = 300; update(); }; });
+  $('newOnly').checked = state.newOnly; $('newOnly').onchange = () => { state.newOnly = $('newOnly').checked; update(); };
+}
+
+$('allGu').onclick = () => { state.gu = Object.keys(META.gu); update(true); };
+$('noGu').onclick = () => { state.gu = []; state.dong = []; update(true); };
+$('reset').onclick = () => { state = defaults(); bindInputs(); update(true); };
+$('more').onclick = () => { shown += 500; update(); };
+
+(async () => {
+  try {
+    META = await (await fetch('data/meta.json', {cache:'no-cache'})).json();
+  } catch { $('updated').textContent = '데이터를 아직 불러올 수 없어요 (수집 전)'; return; }
+  const months = META.months.map(m => `${m.slice(0,4)}.${m.slice(4)}`);
+  $('updated').innerHTML = `업데이트 ${META.updated_at.replace('T',' ').slice(0,16)} · 계약 ${months.at(-1)}~${months[0]} · 국토교통부 실거래가` +
+    (META.failed?.length ? ` · <span class="warn">수집 실패: ${META.failed.join(', ')}</span>` : '');
+  state = loadState();
+  state.gu = state.gu.filter(c => META.gu[c]);
+  bindInputs();
+  update(true);
+})();
+</script>
+</body>
+</html>
