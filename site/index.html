@@ -52,6 +52,34 @@ tr.new td{background:var(--new-bg)}
 .more{display:block;margin:12px auto 0;padding:8px 18px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;cursor:pointer}
 .empty{padding:28px;text-align:center;color:var(--mute)}
 .warn{color:var(--new);font-size:13px}
+.apt{background:none;border:none;padding:0;font:inherit;color:var(--acc);cursor:pointer;text-align:left}
+.apt:hover{text-decoration:underline}
+
+/* 단지 시세 추이 */
+:root{--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--grid:#e1e0d9;--axis:#c3c2b7;--ink2:#52514e}
+@media (prefers-color-scheme:dark){:root{--s1:#3987e5;--s2:#d95926;--s3:#199e70;--grid:#2c2c2a;--axis:#383835;--ink2:#c3c2b7}}
+dialog{border:none;padding:0;width:min(920px,calc(100vw - 24px));max-height:calc(100vh - 24px);border-radius:14px;background:var(--card);color:var(--fg);box-shadow:0 20px 60px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.dlg{padding:18px 18px 22px}
+.dlg-h{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.dlg-h h3{margin:0;font-size:18px}
+.x{background:none;border:none;font-size:22px;line-height:1;color:var(--mute);cursor:pointer;padding:2px 6px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:none;background:transparent;color:var(--fg);font:inherit;font-size:13px;padding:5px 12px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--acc-bg);color:var(--acc);font-weight:600}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 8px}
+.chip .key{display:inline-block;width:14px;height:2px;border-radius:1px;vertical-align:middle;margin-right:5px}
+.chart{position:relative;margin-top:6px}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart text{font:11px system-ui,-apple-system,"Malgun Gothic",sans-serif;fill:var(--mute)}
+.chart text.dl{font-size:12px;font-weight:600;fill:var(--ink2)}
+.tip{position:absolute;pointer-events:none;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.12);white-space:nowrap;z-index:2}
+.tip .m{color:var(--mute);margin-bottom:4px}
+.tip .r{display:flex;align-items:center;gap:6px}
+.tip .r b{font-variant-numeric:tabular-nums}
+.tip .r i{display:inline-block;width:12px;height:2px;border-radius:1px}
+.tip .r span{color:var(--mute)}
+.note{font-size:12px;color:var(--mute);margin:6px 0 0}
 </style>
 </head>
 <body>
@@ -97,8 +125,27 @@ tr.new td{background:var(--new-bg)}
   <button class="more" id="more" hidden>더 보기</button>
 </div>
 
+<dialog id="dlg"><div class="dlg">
+  <div class="dlg-h">
+    <div><h3 id="tTitle"></h3><div class="sub" id="tSub"></div></div>
+    <button class="x" id="tClose" aria-label="닫기">×</button>
+  </div>
+  <div class="tools">
+    <div class="seg" id="tTrade"><button aria-pressed="true">전세</button><button aria-pressed="false">월세</button></div>
+    <div class="seg" id="tView"><button aria-pressed="true">차트</button><button aria-pressed="false">표</button></div>
+  </div>
+  <p class="lbl" style="margin-top:4px">전용면적 (최대 3개 비교)</p>
+  <div class="chips" id="tAreas"></div>
+  <div class="chart" id="tChart"></div>
+  <div class="tw" id="tTable" hidden style="margin-top:10px"></div>
+  <p class="note" id="tNote"></p>
+  <h2>최근 거래 <small id="tCnt"></small></h2>
+  <div class="tw"><table id="tDeals"></table></div>
+</div></dialog>
+
 <script>
 const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = n => n == null || n === '' ? '' : Number(n).toLocaleString('ko-KR');
 const BANDS = [['~40㎡',0,40],['40~60㎡',40,60],['60~85㎡',60,85],['85~102㎡',85,102],['102㎡~',102,1e9]];
 const bandOf = a => BANDS.find(b => a >= b[1] && a < b[2])[0];
@@ -146,7 +193,7 @@ function drawDongChips(all){
   const dongs = [...new Set(all.map(d=>d.dong))].sort((a,b)=>a.localeCompare(b,'ko'));
   state.dong = state.dong.filter(d => dongs.includes(d));
   $('dongWrap').hidden = !dongs.length;
-  $('dongChips').innerHTML = dongs.map(d => `<button class="chip sm" aria-pressed="${state.dong.includes(d)}">${d}</button>`).join('');
+  $('dongChips').innerHTML = dongs.map(d => `<button class="chip sm" aria-pressed="${state.dong.includes(d)}">${esc(d)}</button>`).join('');
   $('dongChips').querySelectorAll('.chip').forEach(b => b.onclick = () => {
     const d = b.textContent; state.dong = state.dong.includes(d) ? state.dong.filter(x=>x!==d) : [...state.dong, d]; update();
   });
@@ -168,7 +215,7 @@ function filter(all){
     (!since || (d.first_seen && d.first_seen >= since)));
 }
 
-const COLS = [['','new'],['계약일','date'],['구','gu'],['동','dong'],['단지','apt'],['전용㎡','area',1],['평','py',1],['층','floor',1],['구분','trade'],['보증금','deposit',1],['월세','monthly_rent',1],['신규/갱신','contract_type'],['종전 보증금','pre_deposit',1],['종전 월세','pre_monthly_rent',1],['준공','build_year',1],['등록일','first_seen']];
+const COLS = [['','new'],['계약일','date'],['구','gu'],['동','dong'],['단지','apt'],['전용㎡','area',1],['평','py',1],['층','floor',1],['구분','trade'],['보증금','deposit',1],['월세','monthly_rent',1],['신규/갱신','contract_type'],['종전 보증금','pre_deposit',1],['종전 월세','pre_monthly_rent',1],['준공','build_year'],['등록일','first_seen']];
 
 function render(rows){
   const recent = META ? daysAgo(1) : '';
@@ -190,10 +237,13 @@ function render(rows){
   rows.sort((a,b) => { const x = a[sortKey] ?? '', y = b[sortKey] ?? ''; return (x>y?1:x<y?-1:0) * sortDir; });
   $('cnt').textContent = `${fmt(rows.length)}건`;
   if (!rows.length) { $('list').innerHTML = `<tr><td class="empty">${state.gu.length ? '조건에 맞는 거래가 없어요' : '위에서 관심 구를 골라주세요'}</td></tr>`; $('more').hidden = true; return; }
+  const page = rows.slice(0, shown);
   $('list').innerHTML = '<tr>' + COLS.map(([h,k]) => `<th data-k="${k}">${h}${sortKey===k ? (sortDir>0?' ▲':' ▼') : ''}</th>`).join('') + '</tr>' +
-    rows.slice(0, shown).map(d => `<tr class="${isNew(d)?'new':''}">` + COLS.map(([h,k,n]) =>
+    page.map((d, i) => `<tr class="${isNew(d)?'new':''}">` + COLS.map(([h,k,n]) =>
       k === 'new' ? `<td>${isNew(d) ? '<span class="badge">NEW</span>' : ''}</td>` :
-      `<td class="${n?'n':''}">${n ? fmt(d[k]) : (d[k] ?? '')}</td>`).join('') + '</tr>').join('');
+      k === 'apt' ? `<td><button class="apt" data-i="${i}" title="단지 시세 추이 보기">${esc(d.apt)}</button></td>` :
+      `<td class="${n?'n':''}">${n ? fmt(d[k]) : esc(d[k])}</td>`).join('') + '</tr>').join('');
+  $('list').querySelectorAll('.apt').forEach(b => b.onclick = () => openTrend(page[+b.dataset.i]));
   $('list').querySelectorAll('th').forEach(th => th.onclick = () => { const k = th.dataset.k; if (k==='new') return; sortDir = sortKey===k ? -sortDir : -1; sortKey = k; update(); });
   $('more').hidden = rows.length <= shown;
 }
@@ -210,11 +260,166 @@ async function update(guChanged){
 }
 
 function bindInputs(){
-  FIELDS.forEach(f => { $(f).value = state[f] ?? ''; $(f).oninput = $(f).onchange = () => { state[f] = $(f).value; shown = 300; update(); }; });
+  // 입력칸은 input 이벤트만 (change까지 걸면 포커스가 빠질 때 목록이 다시 그려져서 클릭이 씹힘)
+  FIELDS.forEach(f => { const el = $(f); el.value = state[f] ?? ''; el[el.tagName === 'SELECT' ? 'onchange' : 'oninput'] = () => { state[f] = el.value; shown = 300; update(); }; });
   $('newOnly').checked = state.newOnly; $('newOnly').onchange = () => { state.newOnly = $('newOnly').checked; update(); };
 }
 
-$('allGu').onclick = () => { state.gu = Object.keys(META.gu); update(true); };
+/* ───────── 단지 시세 추이 ───────── */
+const trendCache = {};
+const SLOTS = ['var(--s1)','var(--s2)','var(--s3)'];
+const eok = v => v >= 10000 ? (Math.round(v/1000)/10).toLocaleString('ko-KR') + '억' : fmt(v) + '만';
+const ymLabel = ym => `${ym.slice(2,4)}.${ym.slice(4)}`;
+let T = null; // {apt, rows, trade, view, sel:[{area,slot}]}
+
+async function getTrend(gu){
+  const code = Object.keys(META.gu).find(c => META.gu[c].name === gu);
+  if (!trendCache[code]) {
+    const r = await fetch(`data/trend/${code}.json`, {cache:'no-cache'});
+    trendCache[code] = r.ok ? await r.json() : {cols:[], rows:[]};
+  }
+  return trendCache[code];
+}
+
+async function openTrend(d){
+  const id = `${d.dong}|${d.apt}|${d.jibun}`;
+  const tr = await getTrend(d.gu);
+  const rows = tr.rows.filter(r => r[0] === id).map(r => Object.fromEntries(tr.cols.map((c,i)=>[c,r[i]])));
+  const deals = (await getGu(Object.keys(META.gu).find(c => META.gu[c].name === d.gu))).filter(x => x.dong===d.dong && x.apt===d.apt && x.jibun===d.jibun);
+  // 월세는 보증금에 따라 들쭉날쭉해서 기본은 전세 (전세 거래가 없을 때만 월세)
+  T = {d, rows, deals, trade: rows.some(r => r.trade === '전세') ? '전세' : '월세', view: 'chart', sel: []};
+  $('tTitle').textContent = d.apt;
+  $('tSub').textContent = `${d.gu} ${d.dong} ${d.jibun} · ${d.build_year ? d.build_year + '년 준공' : ''}`;
+  pickDefaultAreas();
+  $('dlg').showModal();   // 먼저 열어야 차트 폭을 잴 수 있음
+  drawTrend();
+}
+
+function areasFor(trade){
+  const cnt = {};
+  T.rows.filter(r => r.trade === trade).forEach(r => cnt[r.area] = (cnt[r.area]||0) + r.n);
+  return Object.entries(cnt).map(([a,n]) => ({area:+a, n})).sort((a,b) => a.area - b.area);
+}
+function pickDefaultAreas(){
+  const top = areasFor(T.trade).sort((a,b) => b.n - a.n).slice(0,3).map(x=>x.area).sort((a,b)=>a-b);
+  // 색은 면적 유형(엔티티)에 붙는다: 선택된 동안 슬롯 유지
+  T.sel = top.map((area, i) => ({area, slot: i}));
+}
+
+function drawTrend(){
+  const seg = (el, val, vals) => el.querySelectorAll('button').forEach((b,i) => b.setAttribute('aria-pressed', vals[i] === val));
+  seg($('tTrade'), T.trade, ['전세','월세']);
+  seg($('tView'), T.view, ['chart','table']);
+  const areas = areasFor(T.trade);
+  $('tAreas').innerHTML = '';
+  if (!areas.length) $('tAreas').innerHTML = '<span class="sub">이 구분의 거래가 없어요</span>';
+  areas.forEach(({area, n}) => {
+    const s = T.sel.find(x => x.area === area);
+    const b = document.createElement('button');
+    b.className = 'chip sm'; b.setAttribute('aria-pressed', !!s);
+    b.innerHTML = s ? `<span class="key" style="background:${SLOTS[s.slot]}"></span>` : '';
+    b.append(`${area}㎡ · ${n}건`);
+    b.onclick = () => {
+      if (s) T.sel = T.sel.filter(x => x !== s);
+      else {
+        if (T.sel.length >= 3) T.sel.shift();
+        const used = T.sel.map(x => x.slot);
+        T.sel.push({area, slot: [0,1,2].find(i => !used.includes(i))});
+      }
+      drawTrend();
+    };
+    $('tAreas').append(b);
+  });
+
+  const months = [...META.trend_months].reverse();
+  const key = T.trade === '전세' ? 'deposit' : 'monthly_rent';
+  const series = T.sel.map(s => ({...s, pts: months.map(ym => T.rows.find(r => r.ym===ym && r.area===s.area && r.trade===T.trade) || null)}));
+  $('tChart').hidden = T.view !== 'chart';
+  $('tTable').hidden = T.view !== 'table';
+  if (T.view === 'chart') drawChart(months, series, key); else drawTable(months, series, key);
+  $('tNote').textContent = (T.trade === '월세' ? '월세는 월 임대료 중앙값이에요 (보증금은 표에서 확인). ' : '') +
+    '월별 중앙값 · 거래가 없는 달은 비어 있어요 · 출처: 국토교통부 실거래가';
+
+  const ds = [...T.deals].sort((a,b) => a.date < b.date ? 1 : -1);
+  $('tCnt').textContent = `최근 ${META.months.length}개월 · ${ds.length}건`;
+  $('tDeals').innerHTML = '<tr><th>계약일</th><th>전용㎡</th><th>층</th><th>구분</th><th>보증금</th><th>월세</th><th>신규/갱신</th></tr>' +
+    ds.map(x => `<tr><td>${esc(x.date)}</td><td class="n">${fmt(x.area)}</td><td class="n">${fmt(x.floor)}</td><td>${x.trade}</td><td class="n">${fmt(x.deposit)}</td><td class="n">${fmt(x.monthly_rent)}</td><td>${esc(x.contract_type)}</td></tr>`).join('');
+}
+
+function drawChart(months, series, key){
+  // 실제 화면 폭으로 그려서 모바일에서도 글자 크기 유지
+  const W = Math.max(300, $('tChart').clientWidth || 860), H = W < 560 ? 240 : 300, L = 48, R = 46, Tp = 14, B = 28;
+  const tickEvery = W < 560 ? 6 : 3;
+  const vals = series.flatMap(s => s.pts.filter(Boolean).map(p => p[key]));
+  const box = $('tChart');
+  if (!vals.length) { box.innerHTML = '<div class="empty">선택한 면적의 거래가 없어요</div>'; return; }
+  let lo = Math.min(...vals), hi = Math.max(...vals);
+  const pad = (hi - lo) * 0.12 || hi * 0.1 || 1; lo = Math.max(0, lo - pad); hi = hi + pad;
+  const step = niceStep((hi - lo) / 4); lo = Math.floor(lo/step)*step; hi = Math.ceil(hi/step)*step;
+  const x = i => L + (W - L - R) * (i / (months.length - 1));
+  const y = v => Tp + (H - Tp - B) * (1 - (v - lo) / (hi - lo));
+  let g = '';
+  for (let v = lo; v <= hi + 1e-9; v += step) g += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" stroke-width="1"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" style="font-variant-numeric:tabular-nums">${eok(v)}</text>`;
+  months.forEach((ym, i) => { if (i % tickEvery === (months.length-1) % tickEvery) g += `<text x="${x(i)}" y="${H-8}" text-anchor="middle">${ymLabel(ym)}</text>`; });
+  g += `<line x1="${L}" x2="${W-R}" y1="${H-B}" y2="${H-B}" stroke="var(--axis)"/>`;
+  const labels = [];
+  series.forEach(s => {
+    let path = '', pen = false;
+    s.pts.forEach((p, i) => { if (p) { path += `${pen ? 'L' : 'M'}${x(i).toFixed(1)},${y(p[key]).toFixed(1)}`; pen = true; } else pen = false; });
+    g += `<path d="${path}" fill="none" stroke="${SLOTS[s.slot]}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    s.pts.forEach((p, i) => { if (p) g += `<circle cx="${x(i)}" cy="${y(p[key])}" r="4" fill="${SLOTS[s.slot]}" stroke="var(--card)" stroke-width="2"/>`; });
+    const li = s.pts.map((p,i)=>p?i:-1).filter(i=>i>=0).pop();
+    if (li != null) labels.push({y: y(s.pts[li][key]), x: x(li), text: `${s.area}㎡`});
+  });
+  // 직접 라벨: 마지막 점 오른쪽, 겹치면 아래로 밀기
+  labels.sort((a,b)=>a.y-b.y).forEach((l,i,arr) => { if (i && l.y - arr[i-1].y < 14) l.y = arr[i-1].y + 14; g += `<text class="dl" x="${l.x + 9}" y="${l.y + 4}">${l.text}</text>`; });
+  g += `<line id="xh" x1="0" x2="0" y1="${Tp}" y2="${H-B}" stroke="var(--axis)" stroke-width="1" visibility="hidden"/>`;
+  g += `<rect id="hit" x="${L}" y="0" width="${W-L-R}" height="${H}" fill="transparent"/>`;
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(T.d.apt)} ${T.trade} 월별 시세">${g}</svg><div class="tip" hidden></div>`;
+
+  const svg = box.querySelector('svg'), tip = box.querySelector('.tip'), xh = svg.querySelector('#xh');
+  const move = ev => {
+    const r = svg.getBoundingClientRect(), sx = (ev.clientX - r.left) * W / r.width;
+    const i = Math.max(0, Math.min(months.length-1, Math.round((sx - L) / (W - L - R) * (months.length - 1))));
+    xh.setAttribute('x1', x(i)); xh.setAttribute('x2', x(i)); xh.setAttribute('visibility', 'visible');
+    tip.replaceChildren();
+    const m = document.createElement('div'); m.className = 'm'; m.textContent = `20${ymLabel(months[i]).replace('.', '년 ')}월`; tip.append(m);
+    series.forEach(s => {
+      const p = s.pts[i], row = document.createElement('div'); row.className = 'r';
+      const k = document.createElement('i'); k.style.background = SLOTS[s.slot];
+      const v = document.createElement('b'); v.textContent = p ? eok(p[key]) : '–';
+      const n = document.createElement('span'); n.textContent = `${s.area}㎡` + (p ? ` · ${p.n}건` : '');
+      row.append(k, v, n); tip.append(row);
+    });
+    tip.hidden = false;
+    const px = x(i) * r.width / W, tw = tip.offsetWidth;
+    tip.style.left = (px + 12 + tw > r.width ? px - tw - 12 : px + 12) + 'px';
+    tip.style.top = '8px';
+  };
+  svg.querySelector('#hit').addEventListener('pointermove', move);
+  svg.querySelector('#hit').addEventListener('pointerleave', () => { tip.hidden = true; xh.setAttribute('visibility','hidden'); });
+}
+
+function niceStep(raw){ const p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
+
+function drawTable(months, series, key){
+  if (!series.length) { $('tTable').innerHTML = '<div class="empty">면적을 골라주세요</div>'; return; }
+  const extra = T.trade === '월세';
+  let h = '<table><tr><th>월</th>' + series.map(s => `<th>${s.area}㎡${extra ? ' 월세 / 보증금' : ''}</th>`).join('') + '</tr>';
+  [...months].reverse().forEach((ym, ri) => {
+    const i = months.length - 1 - ri;
+    if (!series.some(s => s.pts[i])) return;
+    h += `<tr><td>20${ymLabel(ym)}</td>` + series.map(s => { const p = s.pts[i]; return `<td class="n">${p ? fmt(p[key]) + (extra ? ' / ' + fmt(p.deposit) : '') + ` <span class="mute">(${p.n})</span>` : ''}</td>`; }).join('') + '</tr>';
+  });
+  $('tTable').innerHTML = h + '</table>';
+}
+
+$('tTrade').querySelectorAll('button').forEach((b,i) => b.onclick = () => { T.trade = ['전세','월세'][i]; pickDefaultAreas(); drawTrend(); });
+$('tView').querySelectorAll('button').forEach((b,i) => b.onclick = () => { T.view = ['chart','table'][i]; drawTrend(); });
+$('tClose').onclick = () => $('dlg').close();
+$('dlg').addEventListener('click', e => { if (e.target === $('dlg')) $('dlg').close(); });
+
+$('allGu').onclick =() => { state.gu = Object.keys(META.gu); update(true); };
 $('noGu').onclick = () => { state.gu = []; state.dong = []; update(true); };
 $('reset').onclick = () => { state = defaults(); bindInputs(); update(true); };
 $('more').onclick = () => { shown += 500; update(); };
