@@ -1,4 +1,4 @@
-# 매일 지정 시각에 main.py를 자동 실행하도록 Windows 작업 스케줄러에 등록합니다.
+﻿# 매일 지정 시각에 main.py를 자동 실행하도록 Windows 작업 스케줄러에 등록합니다.
 # 사용법:  powershell -ExecutionPolicy Bypass -File schedule.ps1 -Time 08:30
 # 해제:    Unregister-ScheduledTask -TaskName NaverRentWatch -Confirm:$false
 param([string]$Time = "08:30")
