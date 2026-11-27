@@ -1,5 +1,5 @@
 {
- "updated_at": "2026-11-26T13:01+09:00",
+ "updated_at": "2026-11-27T12:59+09:00",
  "months": [
   "202611",
   "202610",
@@ -8,128 +8,128 @@
  "gu": {
   "11110": {
    "name": "종로구",
-   "count": 374,
-   "new_today": 6
+   "count": 376,
+   "new_today": 2
   },
   "11140": {
    "name": "중구",
-   "count": 590,
-   "new_today": 9
+   "count": 605,
+   "new_today": 16
   },
   "11170": {
    "name": "용산구",
-   "count": 1125,
-   "new_today": 42
+   "count": 1166,
+   "new_today": 41
   },
   "11200": {
    "name": "성동구",
-   "count": 1500,
-   "new_today": 20
+   "count": 1526,
+   "new_today": 26
   },
   "11215": {
    "name": "광진구",
-   "count": 834,
-   "new_today": 17
+   "count": 847,
+   "new_today": 13
   },
   "11230": {
    "name": "동대문구",
-   "count": 1379,
-   "new_today": 28
+   "count": 1396,
+   "new_today": 17
   },
   "11260": {
    "name": "중랑구",
-   "count": 1754,
-   "new_today": 14
+   "count": 1764,
+   "new_today": 10
   },
   "11290": {
    "name": "성북구",
-   "count": 1321,
-   "new_today": 30
+   "count": 1349,
+   "new_today": 28
   },
   "11305": {
    "name": "강북구",
-   "count": 522,
+   "count": 529,
    "new_today": 7
   },
   "11320": {
    "name": "도봉구",
-   "count": 994,
-   "new_today": 17
+   "count": 1009,
+   "new_today": 15
   },
   "11350": {
    "name": "노원구",
-   "count": 3076,
-   "new_today": 47
+   "count": 3113,
+   "new_today": 37
   },
   "11380": {
    "name": "은평구",
-   "count": 1698,
-   "new_today": 19
+   "count": 1712,
+   "new_today": 14
   },
   "11410": {
    "name": "서대문구",
-   "count": 1216,
-   "new_today": 19
+   "count": 1241,
+   "new_today": 25
   },
   "11440": {
    "name": "마포구",
-   "count": 2377,
-   "new_today": 37
+   "count": 2411,
+   "new_today": 34
   },
   "11470": {
    "name": "양천구",
-   "count": 2017,
-   "new_today": 26
+   "count": 2048,
+   "new_today": 31
   },
   "11500": {
    "name": "강서구",
-   "count": 2730,
-   "new_today": 44
+   "count": 2775,
+   "new_today": 46
   },
   "11530": {
    "name": "구로구",
-   "count": 2000,
-   "new_today": 27
+   "count": 2016,
+   "new_today": 16
   },
   "11545": {
    "name": "금천구",
-   "count": 605,
-   "new_today": 7
+   "count": 613,
+   "new_today": 8
   },
   "11560": {
    "name": "영등포구",
-   "count": 2146,
-   "new_today": 24
+   "count": 2178,
+   "new_today": 32
   },
   "11590": {
    "name": "동작구",
-   "count": 1614,
-   "new_today": 24
+   "count": 1635,
+   "new_today": 22
   },
   "11620": {
    "name": "관악구",
-   "count": 1003,
-   "new_today": 17
+   "count": 1016,
+   "new_today": 13
   },
   "11650": {
    "name": "서초구",
-   "count": 2503,
-   "new_today": 34
+   "count": 2544,
+   "new_today": 41
   },
   "11680": {
    "name": "강남구",
-   "count": 3478,
-   "new_today": 59
+   "count": 3541,
+   "new_today": 63
   },
   "11710": {
    "name": "송파구",
-   "count": 3423,
-   "new_today": 63
+   "count": 3473,
+   "new_today": 50
   },
   "11740": {
    "name": "강동구",
-   "count": 2736,
-   "new_today": 58
+   "count": 2781,
+   "new_today": 45
   }
  },
  "failed": [],
